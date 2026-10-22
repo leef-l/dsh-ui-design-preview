@@ -277,7 +277,7 @@ const rail = (tab = '变更') => `
   </aside>`;
 
 const popPlus = () => `
-  <div class="pop" style="position:absolute;left:0;bottom:112px;z-index:5">
+  <div class="pop" style="position:absolute;left:0;bottom:150px;z-index:5">
     <div class="pop-label">添加</div>
     <button class="pop-item">${$('file')}<span class="grow">文件与文件夹</span><span class="meta">@</span></button>
     <button class="pop-item">${$('sparkle')}<span class="grow">技能</span></button>
@@ -288,7 +288,7 @@ const popPlus = () => `
   </div>`;
 
 const popAt = () => `
-  <div class="pop pop-lg" style="position:absolute;left:0;bottom:112px;z-index:5">
+  <div class="pop pop-lg" style="position:absolute;left:0;bottom:150px;z-index:5">
     <div class="pop-label">引用文件 · 流萤漫剧</div>
     <button class="pop-item" style="background:var(--fill)">${$('file')}<span class="grow">src/session/archive.ts</span><span class="meta">刚编辑</span></button>
     <button class="pop-item">${$('file')}<span class="grow">src/session/store.ts</span></button>
@@ -299,7 +299,7 @@ const popAt = () => `
   </div>`;
 
 const popSlash = () => `
-  <div class="pop pop-lg" style="position:absolute;left:0;bottom:112px;z-index:5">
+  <div class="pop pop-lg" style="position:absolute;left:0;bottom:150px;z-index:5">
     <div class="pop-label">命令</div>
     <button class="pop-item">${$('target')}<span class="grow">/plan</span><span class="meta">进入计划模式</span></button>
     <button class="pop-item">${$('layers')}<span class="grow">/compact</span><span class="meta">压缩上下文</span></button>
