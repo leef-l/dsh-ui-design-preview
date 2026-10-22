@@ -1111,180 +1111,435 @@ const setAccount = () => setShell('账户', `
 
 /* ------------------------------------------------------------------ mobile */
 
-const phone = (inner, { status = true } = {}) => `
+/* One shell for every phone page. The earlier set drew its own bar, padding and
+ * row rhythm per page, which is why the mobile half read as unrelated screens;
+ * everything below composes these five pieces instead. */
+const mStatusBar = () => `
+  <div class="m-status"><span>9:41</span><span class="r">${$('bell')}<span style="font-family:var(--mono)">100%</span></span></div>`;
+
+const mShell = ({ title, back = true, right = 'more', body, footer = '', float = '', overlay = '' }) => `
   <div class="device device-phone">
-    ${status ? `<div class="m-status"><span>9:41</span><span class="r">${$('bell')}<span style="font-family:var(--mono)">100%</span></span></div>` : ''}
-    ${inner}
+    ${mStatusBar()}
+    <div class="m-bar">
+      ${back ? `<button class="m-bar-btn" aria-label="返回">${$('chevronLeft')}</button>` : '<span></span>'}
+      <div class="m-bar-title">${title}</div>
+      ${right === 'more' ? `<button class="m-bar-btn" aria-label="更多">${$('more')}</button>` : right === 'none' ? '<span></span>' : `<button class="m-bar-btn" aria-label="${right}">${$(right)}</button>`}
+    </div>
+    <div class="m-body">${body}</div>
+    ${footer}
+    ${float}
+    ${overlay}
   </div>`;
 
-const mBar = (title, { back = true } = {}) => `
-  <div class="m-bar">
-    ${back ? `<button class="m-bar-btn" aria-label="返回">${$('chevronLeft')}</button>` : '<span></span>'}
-    <div class="m-bar-title">${title}</div>
-    <button class="m-bar-btn" aria-label="更多">${$('more')}</button>
+const mRow = ({ title, sub = '', meta = '', right = 'chevron', chip = '', icon = '', current = false }) => `
+  <button class="m-row" ${current ? 'aria-current="true" style="background:var(--panel-2)"' : ''}>
+    ${icon ? `<span class="avatar" style="border-radius:9px">${$(icon)}</span>` : ''}
+    <span class="m-row-main">
+      <span class="m-row-title">${title}</span>
+      ${sub ? `<span class="m-row-sub">${sub}</span>` : ''}
+    </span>
+    ${chip ? `<span class="chip">${chip}</span>` : ''}
+    ${meta ? `<span class="m-row-meta">${meta}</span>` : ''}
+    ${right === 'chevron' ? $('chevronRight') : right === 'check' ? `<span class="pop-check">${$('check')}</span>` : right === 'none' ? '' : right}
+  </button>`;
+
+const mGroup = (label, rows) => `<div class="m-group-label">${label}</div>${rows}`;
+
+const mComposer = ({ ph = '描述你想构建的内容，/ 命令，@ 引用', text = '', busy = false, menu = '' }) => `
+  <div class="m-composer" style="position:relative">
+    ${menu}
+    <div class="m-card">
+      <div class="m-input">${text ? `${text}<span class="caret"></span>` : `<span class="ph muted">${ph}</span>`}</div>
+      <div class="m-row-ctl">
+        <button class="m-pill">${$('plus')}</button>
+        <button class="m-pill">${$('target')}<span>写入</span></button>
+        <div class="grow"></div>
+        <button class="m-pill">${$('mic')}</button>
+        <button class="send ${busy ? 'send-stop' : ''}">${$(busy ? 'stop' : 'send')}</button>
+      </div>
+    </div>
   </div>`;
 
-const mSessions = () => phone(`
-  ${mBar('会话', { back: false })}
-  <div class="m-body">
+const mSheet = ({ title, items, scrim = true }) => `
+  ${scrim ? '<div class="m-scrim"></div>' : ''}
+  <div class="m-sheet">
+    <div class="m-grabber"></div>
+    ${title ? `<div class="m-sheet-title">${title}</div>` : ''}
+    ${items.map(([icon, label, meta]) => `
+      <button class="pop-item" style="height:48px;padding:0 18px">
+        ${icon ? $(icon) : ''}<span class="grow">${label}</span>${meta ? `<span class="meta">${meta}</span>` : ''}
+      </button>`).join('')}
+  </div>`;
+
+/* --- home ---------------------------------------------------------------- */
+
+const mSessions = () => mShell({
+  title: '会话',
+  back: false,
+  float: `<button class="m-fab">${$('plus')}<span>新建</span></button>`,
+  body: `
     <div class="m-pad">
       <div style="height:38px;border-radius:10px;background:var(--fill);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--ink-3);font-size:14px">${$('search')}<span>搜索会话</span></div>
       <div class="row gap-8 mt-12">
         ${['全部', '进行中', '已归档'].map((t, i) => `<button class="btn btn-sm" style="${i === 0 ? 'background:var(--fill-2);font-weight:550' : ''}">${t}</button>`).join('')}
       </div>
     </div>
-    <div class="m-group-label">流萤漫剧</div>
-    ${[
-      ['给会话列表加归档', '2 分钟前 · 进行中', true],
-      ['修复拖拽排序抖动', '1 小时前 · 完成', false],
-      ['把设置页拆成两级', '3 小时前 · 完成', false],
-    ].map(([t, s, cur]) => `
-      <button class="m-row" ${cur ? 'aria-current="true"' : ''} style="${cur ? 'background:var(--panel-2)' : ''}">
-        <span class="m-row-main">
-          <span class="m-row-title">${t}</span>
-          <span class="m-row-sub">${s}</span>
-        </span>
-        ${cur ? `<span class="chip chip-warn">进行中</span>` : ''}
-      </button>`).join('')}
-    <div class="m-sep"></div>
-    <div class="m-group-label">插件推广</div>
-    ${[
-      ['插件市场的搜索', '昨天 · 已归档'],
-      ['卡片密度调整', '3 天前 · 已归档'],
-    ].map(([t, s]) => `
-      <button class="m-row">
-        <span class="m-row-main"><span class="m-row-title">${t}</span><span class="m-row-sub">${s}</span></span>
-      </button>`).join('')}
-  </div>
-  <button class="m-fab">${$('plus')}<span>新建</span></button>
-`);
+    ${mGroup('流萤漫剧', `
+      ${mRow({ title: '给会话列表加归档', sub: '2 分钟前 · 进行中', chip: '进行中', current: true })}
+      ${mRow({ title: '修复拖拽排序抖动', sub: '1 小时前 · 完成' })}
+      ${mRow({ title: '把设置页拆成两级', sub: '3 小时前 · 完成' })}
+    `)}
+    ${mGroup('插件推广', `
+      ${mRow({ title: '插件市场的搜索', sub: '昨天 · 已归档' })}
+      ${mRow({ title: '卡片密度调整', sub: '3 天前 · 已归档' })}
+    `)}
+    ${mGroup('语音操作', mRow({ title: '语音草稿的断句', sub: '上周 · 完成' }))}
+    <div style="height:80px"></div>`,
+});
 
-const mConv = () => phone(`
-  ${mBar('给会话列表加归档')}
-  <div class="m-body" style="padding:14px 16px">
-    <div class="turn-user mb-16"><div class="bubble-user" style="background:var(--fill);border-radius:16px">会话列表没法归档，删了就找不回来了。加一个归档，别直接删。</div></div>
-    <div class="who"><span class="who-mark">D</span><span>DeepSeek</span></div>
-    <div class="prose t-13">
-      <p>改成软归档：写 <code>archivedAt</code>，列表默认过滤，可恢复。先看删除路径。</p>
-    </div>
-    <div class="tool-card mt-8">
-      <div class="tool-head">${$('terminal')}<span class="t">grep</span><div class="grow"></div><span class="chip chip-ok">完成</span></div>
-      <div class="tool-body">
-        <div class="ln">store.ts:128  delete(id)</div>
-        <div class="ln">session.ts:74  remove(id)</div>
+const mEmpty = () => mShell({
+  title: '新会话',
+  right: 'none',
+  body: `
+    <div class="empty" style="padding-top:60px">
+      <div style="width:52px;height:52px;border-radius:16px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font:600 20px/1 var(--serif);margin-bottom:16px">DS</div>
+      <h3>从一句话开始</h3>
+      <p>描述你想构建的东西。我会先读项目，再动手；写文件、跑命令之前都会先问你。</p>
+      <div class="row gap-8" style="flex-wrap:wrap;justify-content:center">
+        ${['给会话加归档', '把设置拆两级', '修一下拖拽抖动'].map((t) => `<button class="btn btn-sm">${t}</button>`).join('')}
       </div>
-    </div>
-    <div class="tool-card mt-8">
-      <div class="tool-head">${$('branch')}<span class="t">编辑 · archive.ts</span><div class="grow"></div><span class="chip chip-ok">+38</span></div>
-      <div class="diff" style="font-size:11px">
-        <div class="diff-row diff-add"><span class="diff-gutter">42</span><span class="diff-code">+export async function</span></div>
-        <div class="diff-row diff-add"><span class="diff-gutter">43</span><span class="diff-code">+  archiveSession(id) {</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="m-composer">
-    <div class="m-card">
-      <div class="m-input"><span class="ph muted">继续说明，/ 命令，@ 引用</span></div>
-      <div class="m-row-ctl">
-        <button class="m-pill">${$('plus')}</button>
-        <button class="m-pill">${$('target')}<span>写入</span></button>
-        <div class="grow"></div>
-        <button class="m-pill">${$('mic')}</button>
-        <button class="send">${$('send')}</button>
-      </div>
-    </div>
-  </div>
-`);
+    </div>`,
+  footer: mComposer({}),
+});
 
-const mApproval = () => phone(`
-  ${mBar('需要授权')}
-  <div class="m-body" style="padding:14px">
-    <div class="m-card-big">
-      <div class="p-14">
-        <div class="row gap-8 mb-8"><span class="chip chip-warn">等待授权</span><span class="t-11 muted mono">bash</span></div>
-        <div class="mono t-12" style="background:var(--fill);padding:10px;border-radius:10px;line-height:1.6">pnpm test -- --e2e<br>--update-snapshots</div>
-        <div class="t-12 sec mt-12">将写入 <span class="mono">tests/e2e/__snapshots__/</span> 下 6 个文件。工作区内，不访问网络。</div>
-      </div>
-      <div class="m-approve-actions">
-        <button class="btn btn-primary">允许一次</button>
-        <button class="btn">本会话都允许</button>
-      </div>
-    </div>
-    <div class="card card-pad" style="background:var(--panel-2)">
-      <div class="t-12 sec">拒绝后我会改用只读方式重跑，不会写入任何文件。</div>
-    </div>
-  </div>
-`);
-
-const mDiff = () => phone(`
-  ${mBar('变更 · 3 个文件')}
-  <div class="m-body">
+const mSearch = () => mShell({
+  title: '搜索',
+  right: 'none',
+  body: `
     <div class="m-pad">
-      <div class="row gap-8"><span class="chip chip-ok">+64</span><span class="chip chip-bad">−11</span><div class="grow"></div><span class="t-11 muted mono">29 个测试通过</span></div>
+      <div style="height:38px;border-radius:10px;background:var(--fill);display:flex;align-items:center;gap:8px;padding:0 12px;font-size:14px">${$('search')}<span class="mono">归档</span><span class="caret"></span></div>
+      <div class="t-11 muted mt-8">12 条结果 · 23ms</div>
     </div>
+    ${mRow({ title: '给会话列表加归档', sub: '流萤漫剧 · 2 分钟前' })}
+    ${mRow({ title: '归档的快捷键', sub: '流萤漫剧 · 昨天' })}
+    ${mRow({ title: 'store.test.ts', sub: '文件 · 142 行', icon: 'file' })}`,
+});
+
+/* --- conversation -------------------------------------------------------- */
+
+const mConv = () => mShell({
+  title: '给会话列表加归档',
+  body: `
+    <div class="m-pad">
+      <div class="turn-user mb-16"><div class="bubble-user" style="background:var(--fill);border-radius:16px">会话列表没法归档，删了就找不回来了。加一个归档，别直接删。</div></div>
+      <div class="who"><span class="who-mark">D</span><span>DeepSeek</span></div>
+      <div class="prose t-13"><p>改成软归档：写 <code>archivedAt</code>，列表默认过滤，可恢复。先看删除路径。</p></div>
+      <div class="tool-card mt-8">
+        <div class="tool-head">${$('terminal')}<span class="t">grep</span><div class="grow"></div><span class="chip chip-ok">完成</span></div>
+        <div class="tool-body"><div class="ln">store.ts:128  delete(id)</div><div class="ln">session.ts:74  remove(id)</div></div>
+      </div>
+      <div class="tool-card mt-8">
+        <div class="tool-head">${$('branch')}<span class="t">编辑 · archive.ts</span><div class="grow"></div><span class="chip chip-ok">+38</span></div>
+        <div class="diff" style="font-size:11px">
+          <div class="diff-row diff-add"><span class="diff-gutter">42</span><span class="diff-code">+export async function</span></div>
+          <div class="diff-row diff-add"><span class="diff-gutter">43</span><span class="diff-code">+  archiveSession(id) {</span></div>
+        </div>
+      </div>
+      <div class="prose t-13 mt-12"><p>改完了，29 个测试通过。</p></div>
+    </div>`,
+  footer: mComposer({}),
+});
+
+const mConvPlus = () => mShell({
+  title: '给会话列表加归档',
+  body: `
+    <div class="m-pad">
+      <div class="turn-user"><div class="bubble-user" style="background:var(--fill);border-radius:16px">会话列表没法归档，删了就找不回来了。</div></div>
+    </div>`,
+  footer: mComposer({}),
+  overlay: mSheet({ title: '添加', items: [['file', '文件与文件夹', '@'], ['sparkle', '技能', ''], ['puzzle', '插件', ''], ['globe', '浏览器连接', ''], ['terminal', '运行命令', '/']] }),
+});
+
+const mConvAt = () => mShell({
+  title: '给会话列表加归档',
+  body: `<div class="m-pad"><div class="turn-user"><div class="bubble-user" style="background:var(--fill);border-radius:16px">引用一下那个文件</div></div></div>`,
+  footer: mComposer({}),
+  overlay: mSheet({ title: '引用文件 · 流萤漫剧', items: [['file', 'src/session/archive.ts', '刚编辑'], ['file', 'src/session/store.ts', ''], ['file', 'tests/session/store.test.ts', ''], ['layers', '修复拖拽排序抖动', '1h']] }),
+});
+
+const mConvSlash = () => mShell({
+  title: '给会话列表加归档',
+  body: `<div class="m-pad"><div class="turn-user"><div class="bubble-user" style="background:var(--fill);border-radius:16px">/</div></div></div>`,
+  footer: mComposer({}),
+  overlay: mSheet({ title: '命令', items: [['target', '/plan', '计划模式'], ['layers', '/compact', '压缩上下文'], ['gear', '/model', '切换模型'], ['user', '/permission', '权限模式']] }),
+});
+
+const mApproval = () => mShell({
+  title: '需要授权',
+  body: `
+    <div style="padding:14px">
+      <div class="m-card-big">
+        <div class="p-14">
+          <div class="row gap-8 mb-8"><span class="chip chip-warn">等待授权</span><span class="t-11 muted mono">bash</span></div>
+          <div class="mono t-12" style="background:var(--fill);padding:10px;border-radius:10px;line-height:1.6">pnpm test -- --e2e<br>--update-snapshots</div>
+          <div class="t-12 sec mt-12">将写入 <span class="mono">tests/e2e/__snapshots__/</span> 下 6 个文件。工作区内，不访问网络。</div>
+        </div>
+        <div class="m-approve-actions">
+          <button class="btn btn-primary">允许一次</button>
+          <button class="btn">本会话都允许</button>
+        </div>
+      </div>
+      <div class="card card-pad" style="background:var(--panel-2)">
+        <div class="t-12 sec">拒绝后我会改用只读方式重跑，不会写入任何文件。</div>
+      </div>
+    </div>`,
+});
+
+const mAsk = () => mShell({
+  title: '需要你选择',
+  body: `
+    <div style="padding:14px">
+      <div class="t-13 sec mb-12">归档的会话还要出现在搜索里吗？</div>
+      <div class="m-card-big">
+        <button class="pop-item" style="height:auto;padding:14px 16px;align-items:flex-start;background:var(--panel-2)">
+          <span class="col" style="align-items:flex-start;gap:3px">
+            <span style="font-weight:550">仍然出现，带「已归档」标签</span>
+            <span class="t-12 muted">历史仍可被检索到</span>
+          </span>
+          <span class="pop-check">${$('check')}</span>
+        </button>
+        <div class="m-sep"></div>
+        <button class="pop-item" style="height:auto;padding:14px 16px;align-items:flex-start">
+          <span class="col" style="align-items:flex-start;gap:3px">
+            <span style="font-weight:550">完全不出现在搜索里</span>
+            <span class="t-12 muted">需要「显示归档」开关才能找回</span>
+          </span>
+        </button>
+      </div>
+      <button class="btn btn-primary" style="width:100%;height:44px;border-radius:999px;margin-top:14px">就这样</button>
+    </div>`,
+});
+
+const mPlan = () => mShell({
+  title: '计划 · 归档与恢复',
+  body: `
+    <div style="padding:14px">
+      ${[
+        ['1', '数据层', 'archive / restore 写 archivedAt，不删行', 'ok', '+38 −4'],
+        ['2', '查询过滤', 'list 与 search 默认加 archivedAt == null', 'ok', '+12 −3'],
+        ['3', '界面', '行内动作换成「归档」，加一次性撤销', 'warn', '待确认'],
+        ['4', '验证', '单测覆盖归档/恢复/幂等，e2e 覆盖列表与搜索', '', ''],
+      ].map(([n, t, d, k, diff]) => `
+        <div class="card card-pad mb-12">
+          <div class="row gap-8 mb-8"><span class="chip">${n}</span><b class="t-13">${t}</b><div class="grow"></div>${diff ? `<span class="chip ${k === 'ok' ? 'chip-ok' : 'chip-warn'}">${diff}</span>` : ''}</div>
+          <div class="t-12 sec">${d}</div>
+        </div>`).join('')}
+    </div>`,
+  footer: `<div class="m-composer" style="display:flex;gap:8px">
+    <button class="btn" style="flex:1;height:44px;border-radius:999px">调整</button>
+    <button class="btn btn-primary" style="flex:1;height:44px;border-radius:999px">开始实现</button>
+  </div>`,
+});
+
+const mDiff = () => mShell({
+  title: '变更 · 3 个文件',
+  body: `
+    <div class="m-pad"><div class="row gap-8"><span class="chip chip-ok">+64</span><span class="chip chip-bad">−11</span><div class="grow"></div><span class="t-11 muted mono">29 通过</span></div></div>
     <div class="diff-file">${$('file')}<span>archive.ts</span><span class="chip chip-ok">新增</span></div>
     <div class="diff" style="font-size:11px">
-      ${[
-        ['4', '+export async function archiveSession(id)', 'diff-add'],
-        ['5', '+  const row = await db.sessions.get(id)', 'diff-add'],
-        ['6', '+  if (!row) throw new NotFoundError(id)', 'diff-add'],
-        ['7', ' ', ''],
-        ['8', '+  return db.sessions.update(id, {', 'diff-add'],
-        ['9', '+    archivedAt: Date.now() })', 'diff-add'],
-        ['10', '+}', 'diff-add'],
-      ].map(([n, t, c]) => `<div class="diff-row ${c}"><span class="diff-gutter">${n}</span><span class="diff-code">${escapeHtml(t)}</span></div>`).join('')}
+      ${[['4', '+export async function archiveSession(id)', 'diff-add'], ['5', '+  const row = await db.sessions.get(id)', 'diff-add'], ['6', '+  if (!row) throw new NotFoundError(id)', 'diff-add'], ['7', ' ', ''], ['8', '+  return db.sessions.update(id, {', 'diff-add'], ['9', '+    archivedAt: Date.now() })', 'diff-add'], ['10', '+}', 'diff-add']]
+        .map(([n, t, c]) => `<div class="diff-row ${c}"><span class="diff-gutter">${n}</span><span class="diff-code">${escapeHtml(t)}</span></div>`).join('')}
     </div>
     <div class="diff-file">${$('file')}<span>store.ts</span><span class="chip">修改</span></div>
     <div class="diff" style="font-size:11px">
       <div class="diff-row diff-del"><span class="diff-gutter">127</span><span class="diff-code">-  await db.sessions.delete(id)</span></div>
       <div class="diff-row diff-add"><span class="diff-gutter">127</span><span class="diff-code">+  await archiveSession(id)</span></div>
-    </div>
-  </div>
-`);
+    </div>`,
+});
 
-const mNew = () => phone(`
-  ${mBar('新任务')}
-  <div class="m-body">
-    <div class="m-group-label">在哪里运行</div>
-    ${[
-      ['本机 · 流萤漫剧', '在这个工作区执行，可写文件', true],
-      ['本机 · 插件推广', '另一个工作区', false],
-      ['云端沙箱', '没有本机文件，需要上传', false],
-    ].map(([t, d, cur]) => `
-      <button class="m-row" style="min-height:60px">
-        <span class="m-row-main"><span class="m-row-title">${t}</span><span class="m-row-sub">${d}</span></span>
-        ${cur ? `<span class="pop-check">${$('check')}</span>` : ''}
-      </button>`).join('')}
-    <div class="m-sep"></div>
-    <div class="m-group-label">权限</div>
-    ${[
-      ['只读', false], ['工作区写入', true], ['完全访问', false],
-    ].map(([t, cur]) => `
-      <button class="m-row"><span class="m-row-main"><span class="m-row-title">${t}</span></span>${cur ? `<span class="pop-check">${$('check')}</span>` : ''}</button>`).join('')}
-    <div class="m-sep"></div>
-    <div class="m-group-label">模型</div>
-    <button class="m-row"><span class="m-row-main"><span class="m-row-title">DeepSeek-V4.1 · 1017</span><span class="m-row-sub">思考强度：中</span></span><span class="pop-check">${$('check')}</span></button>
-  </div>
-  <div class="m-composer"><button class="btn btn-primary" style="width:100%;height:44px;border-radius:999px">开始任务</button></div>
-`);
+const mFiles = () => mShell({
+  title: '文件',
+  right: 'search',
+  body: `
+    ${mGroup('src/session', `
+      ${mRow({ title: 'archive.ts', icon: 'file', current: true, meta: '改' })}
+      ${mRow({ title: 'store.ts', icon: 'file', meta: '改' })}
+      ${mRow({ title: 'types.ts', icon: 'file' })}
+    `)}
+    ${mGroup('根目录', `
+      ${mRow({ title: 'README.md', icon: 'file' })}
+      ${mRow({ title: 'package.json', icon: 'file' })}
+    `)}`,
+});
 
-const mSettings = () => phone(`
-  ${mBar('设置')}
-  <div class="m-body">
-    <div class="m-group-label">常用</div>
-    ${[['常规', '权限、语言、外观'], ['模型', '默认模型与思考强度'], ['权限', '当前：工作区写入'], ['预设', '标准模式']].map(([t, s]) => `
-      <button class="m-row"><span class="m-row-main"><span class="m-row-title">${t}</span><span class="m-row-sub">${s}</span></span>${$('chevronRight')}</button>`).join('')}
-    <div class="m-sep"></div>
-    <div class="m-group-label">其他</div>
-    ${[['快捷键', ''], ['账户', 'Pro · 已登录'], ['插件', '5 个已安装'], ['关于', '0.2.1-rc.2']].map(([t, s]) => `
-      <button class="m-row"><span class="m-row-main"><span class="m-row-title">${t}</span>${s ? `<span class="m-row-sub">${s}</span>` : ''}</span>${$('chevronRight')}</button>`).join('')}
-  </div>
-`);
+const mCode = () => mShell({
+  title: 'archive.ts',
+  body: `
+    <div class="code-view" style="padding:10px 0">
+      ${[
+        ['1', '<span class="tok-k">import</span> { db } <span class="tok-k">from</span> <span class="tok-s">"../db"</span>'],
+        ['2', '<span class="tok-k">import</span> { NotFoundError } <span class="tok-k">from</span> <span class="tok-s">"../errors"</span>'],
+        ['3', ''],
+        ['4', '<span class="tok-k">export</span> <span class="tok-k">async</span> <span class="tok-k">function</span> archiveSession(id: <span class="tok-n">string</span>) {'],
+        ['5', '  <span class="tok-k">const</span> row = <span class="tok-k">await</span> db.sessions.get(id)'],
+        ['6', '  <span class="tok-k">if</span> (!row) <span class="tok-k">throw</span> <span class="tok-k">new</span> NotFoundError(id)'],
+        ['7', ''],
+        ['8', '  <span class="tok-k">return</span> db.sessions.update(id, { archivedAt: Date.now() })'],
+        ['9', '}'],
+      ].map(([n, t]) => `<div class="code-line"><span class="n">${n}</span><span class="t">${t}</span></div>`).join('')}
+    </div>`,
+  footer: `<div class="m-composer" style="display:flex;gap:8px"><button class="btn" style="flex:1;height:40px;border-radius:999px">查看差异</button><button class="btn btn-primary" style="flex:1;height:40px;border-radius:999px">在会话里讨论</button></div>`,
+});
+
+const mTerminal = () => mShell({
+  title: 'bash',
+  right: 'play',
+  body: `<div class="term" style="height:100%">
+    <div><span class="p">~/流萤漫剧 $</span> <span class="c">pnpm test src/session</span></div>
+    <div class="o">&nbsp;</div>
+    <div class="o"> ✓ store.test.ts (14)</div>
+    <div class="o"> ✓ archive.test.ts (9)</div>
+    <div class="o"> ✓ api/session.test.ts (6)</div>
+    <div class="o">&nbsp;</div>
+    <div class="o"> Tests  <span style="color:#8fd6a8">29 passed</span> (29)</div>
+    <div class="o"> Duration 1.82s</div>
+    <div><span class="p">~/流萤漫剧 $</span> <span class="caret" style="background:#e8e4da"></span></div>
+  </div>`,
+});
+
+const mBrowser = () => mShell({
+  title: '预览',
+  right: 'globe',
+  body: `
+    <div style="padding:10px 12px"><div style="height:32px;border-radius:9px;background:var(--fill);display:flex;align-items:center;padding:0 10px;font-family:var(--mono);font-size:11.5px;color:var(--ink-2)">localhost:5173/sessions</div></div>
+    <div class="p-14" style="background:var(--panel-2)">
+      <div class="card" style="overflow:hidden">
+        <div class="row gap-8 p-14" style="border-bottom:1px solid var(--line-2)"><b class="t-13">会话</b><div class="grow"></div><span class="chip">已归档</span></div>
+        ${['给会话列表加归档', '修复拖拽排序抖动', '把设置页拆成两级'].map((t) => `<div class="row" style="padding:12px 14px;border-bottom:1px solid var(--line-2)"><b class="t-13">${t}</b></div>`).join('')}
+      </div>
+    </div>`,
+});
+
+const mRun = () => mShell({
+  title: '运行轨迹',
+  body: `
+    <div class="m-pad">
+      <div class="row gap-8 mb-12"><span class="chip chip-ok">已完成</span><span class="t-11 muted mono">12.4s · 8 步</span></div>
+      ${[['读取上下文', 'grep · 2 处匹配'], ['阅读文件', '3 个文件 · 214 行'], ['写实现', 'archive.ts +38 −4'], ['跑测试', '29 passed · 1.82s'], ['自检', '类型检查通过']]
+        .map(([t, d], i) => `<div class="row gap-12" style="padding:10px 0;border-bottom:1px solid var(--line-2)"><span class="chip">${i + 1}</span><div class="col" style="gap:2px"><b class="t-13">${t}</b><span class="t-11 muted mono">${d}</span></div><div class="grow"></div><span class="chip chip-ok">完成</span></div>`).join('')}
+    </div>`,
+});
+
+const mAgents = () => mShell({
+  title: '子代理',
+  right: 'plus',
+  body: `
+    <div class="m-pad">
+      ${[['测试补全', '补齐 archive 边界用例', '运行中', 'warn'], ['文档核对', '检查 README 语义', '已完成', 'ok'], ['依赖审计', '确认无新增依赖', '已完成', 'ok']]
+        .map(([t, d, s, k]) => `<div class="card card-pad mb-12"><div class="row gap-10"><span class="who-mark">A</span><div class="col" style="gap:2px;flex:1"><b class="t-13">${t}</b><span class="t-12 muted">${d}</span></div><span class="chip chip-${k}">${s}</span></div></div>`).join('')}
+    </div>`,
+});
+
+/* --- manage -------------------------------------------------------------- */
+
+const mJobs = () => mShell({
+  title: '后台任务',
+  body: `
+    <div class="m-pad">
+      ${[['全量测试', 'pnpm test', '运行中', 'warn', 64], ['构建 Web', 'pnpm build:web', '成功', 'ok', 100], ['类型检查', 'pnpm typecheck', '成功', 'ok', 100]]
+        .map(([t, cmd, s, k, p]) => `<div class="card card-pad mb-12"><div class="row gap-10"><div class="col" style="gap:2px;flex:1"><b class="t-13">${t}</b><span class="mono t-11 muted">${cmd}</span></div><span class="chip chip-${k}">${s}</span></div><div class="bar mt-12"><i style="width:${p}%"></i></div></div>`).join('')}
+    </div>`,
+});
+
+const mAutomation = () => mShell({
+  title: '自动化',
+  right: 'plus',
+  body: `
+    <div class="m-pad">
+      ${[['每天早上汇总会话', '每天 09:00 · 2 小时前', true], ['周五清理归档会话', '每周五 18:00', true], ['依赖更新检查', '每周一 10:00 · 失败', true], ['提交前跑测试', '手动触发', false]]
+        .map(([t, meta, on]) => `<div class="card card-pad mb-12"><div class="row gap-10"><div class="col" style="gap:2px;flex:1"><b class="t-13">${t}</b><span class="t-11 muted mono">${meta}</span></div><div class="switch" role="switch" aria-checked="${on}"></div></div></div>`).join('')}
+    </div>`,
+});
+
+const mPlugins = () => mShell({
+  title: '插件',
+  right: 'plus',
+  body: `
+    <div class="m-pad">
+      ${[['燧火漫助', '漫剧制作工作台', true], ['语音输入', '本地 SenseVoice', true], ['代理团队', '多代理协作', false], ['插件市场', '发现并安装', false]]
+        .map(([t, d, on]) => `<div class="card card-pad mb-12"><div class="row gap-12"><span class="avatar" style="border-radius:10px">${$('puzzle')}</span><div class="col" style="gap:2px;flex:1"><b class="t-13">${t}</b><span class="t-12 muted">${d}</span></div><div class="switch" role="switch" aria-checked="${on}"></div></div></div>`).join('')}
+    </div>`,
+});
+
+/* --- settings ------------------------------------------------------------ */
+
+const mNew = () => mShell({
+  title: '新任务',
+  body: `
+    ${mGroup('在哪里运行', `
+      ${mRow({ title: '本机 · 流萤漫剧', sub: '在这个工作区执行，可写文件', right: 'check' })}
+      ${mRow({ title: '本机 · 插件推广', sub: '另一个工作区' })}
+      ${mRow({ title: '云端沙箱', sub: '没有本机文件，需要上传' })}
+    `)}
+    ${mGroup('权限', `
+      ${mRow({ title: '只读' })}
+      ${mRow({ title: '工作区写入', right: 'check' })}
+      ${mRow({ title: '完全访问' })}
+    `)}
+    ${mGroup('模型', mRow({ title: 'DeepSeek-V4.1 · 1017', sub: '思考强度：中', right: 'check' }))}`,
+  footer: `<div class="m-composer"><button class="btn btn-primary" style="width:100%;height:44px;border-radius:999px">开始任务</button></div>`,
+});
+
+const mSettings = () => mShell({
+  title: '设置',
+  body: `
+    ${mGroup('常用', `
+      ${mRow({ title: '常规', sub: '权限、语言、外观' })}
+      ${mRow({ title: '模型', sub: '默认模型与思考强度' })}
+      ${mRow({ title: '权限', sub: '当前：工作区写入' })}
+      ${mRow({ title: '预设', sub: '标准模式' })}
+    `)}
+    ${mGroup('其他', `
+      ${mRow({ title: '快捷键' })}
+      ${mRow({ title: '账户', sub: 'Pro · 已登录' })}
+      ${mRow({ title: '插件', sub: '5 个已安装' })}
+      ${mRow({ title: '关于', sub: '0.2.1-rc.2' })}
+    `)}`,
+});
+
+const mSettingsDetail = () => mShell({
+  title: '常规',
+  body: `
+    <div class="m-pad">
+      <div class="field" style="flex-direction:column;gap:8px;align-items:stretch">
+        <div class="field-label" style="width:auto"><b>权限模式</b><span>新会话默认的写入权限</span></div>
+        <button class="select" style="width:100%"><span class="grow">Workspace Write</span>${$('chevronDown')}</button>
+      </div>
+      <div class="field" style="flex-direction:column;gap:8px;align-items:stretch">
+        <div class="field-label" style="width:auto"><b>语言</b><span>界面与回复</span></div>
+        <button class="select" style="width:100%"><span class="grow">简体中文</span>${$('chevronDown')}</button>
+      </div>
+      <div class="field" style="flex-direction:column;gap:8px;align-items:stretch">
+        <div class="field-label" style="width:auto"><b>外观</b><span>跟随系统或固定一种</span></div>
+        <div class="row gap-8"><button class="btn" style="flex:1">浅色</button><button class="btn" style="flex:1">深色</button><button class="btn" style="flex:1;background:var(--fill-2)">系统</button></div>
+      </div>
+      <div class="field" style="align-items:center;justify-content:space-between">
+        <div class="field-label" style="width:auto"><b>显示编码视图</b><span>轨迹、差异与预设</span></div>
+        <div class="switch" role="switch" aria-checked="true"></div>
+      </div>
+      <div class="field" style="align-items:center;justify-content:space-between;border-bottom:0">
+        <div class="field-label" style="width:auto"><b>字号</b><span>只影响会话正文</span></div>
+        <div class="row gap-8"><button class="btn btn-sm">−</button><span class="mono t-13">14</span><button class="btn btn-sm">＋</button></div>
+      </div>
+    </div>`,
+});
+
+/* --- overlays ------------------------------------------------------------ */
 
 const mDrawer = () => `
   <div class="device device-phone">
-    <div class="m-status"><span>9:41</span><span class="r">${$('bell')}<span style="font-family:var(--mono)">100%</span></span></div>
-    ${mBar('给会话列表加归档')}
+    ${mStatusBar()}
+    <div class="m-bar"><button class="m-bar-btn">${$('chevronLeft')}</button><div class="m-bar-title">给会话列表加归档</div><button class="m-bar-btn">${$('more')}</button></div>
     <div class="m-body" style="padding:14px 16px">
       <div class="turn-user"><div class="bubble-user" style="background:var(--fill);border-radius:16px">会话列表没法归档，删了就找不回来了。</div></div>
       <div class="who mt-16"><span class="who-mark">D</span><span>DeepSeek</span></div>
@@ -1292,43 +1547,41 @@ const mDrawer = () => `
     </div>
     <div class="m-scrim"></div>
     <div style="position:absolute;left:0;top:0;bottom:0;width:300px;background:var(--panel-2);box-shadow:var(--shadow-pop);padding-top:52px">
-      <div class="p-14">
-        <button class="new-session" style="height:40px">${$('plus')}<span>新建会话</span></button>
-      </div>
+      <div class="p-14"><button class="new-session" style="height:40px">${$('plus')}<span>新建会话</span></button></div>
       <div style="padding:0 10px">
         <button class="side-nav-item">${$('puzzle')}<span>插件</span></button>
         <button class="side-nav-item">${$('clock')}<span>自动化任务</span></button>
       </div>
       <div class="m-group-label">工作区</div>
-      ${['流萤漫剧', '插件推广', 'dsh 手机版 UI', '语音操作'].map((t, i) => `
-        <button class="m-row" style="min-height:44px"><span class="m-row-main"><span class="m-row-title" style="${i === 0 ? 'font-weight:600' : ''}">${t}</span></span></button>`).join('')}
+      ${['流萤漫剧', '插件推广', 'dsh 手机版 UI', '语音操作'].map((t, i) => `<button class="m-row" style="min-height:44px"><span class="m-row-main"><span class="m-row-title" style="${i === 0 ? 'font-weight:600' : ''}">${t}</span></span></button>`).join('')}
     </div>
   </div>`;
 
 const mActions = () => `
   <div class="device device-phone">
-    <div class="m-status"><span>9:41</span><span class="r">${$('bell')}<span style="font-family:var(--mono)">100%</span></span></div>
-    ${mBar('会话')}
+    ${mStatusBar()}
+    <div class="m-bar"><span></span><div class="m-bar-title">会话</div><button class="m-bar-btn">${$('more')}</button></div>
     <div class="m-body">
       <div class="m-pad"><div style="height:38px;border-radius:10px;background:var(--fill);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--ink-3);font-size:14px">${$('search')}<span>搜索会话</span></div></div>
-      <div class="m-group-label">流萤漫剧</div>
-      ${['给会话列表加归档', '修复拖拽排序抖动', '把设置页拆成两级'].map((t, i) => `
-        <button class="m-row" style="${i === 0 ? 'background:var(--fill-2)' : ''}">
-          <span class="m-row-main"><span class="m-row-title">${t}</span><span class="m-row-sub">流萤漫剧 · ${i === 0 ? '2 分钟前' : i === 1 ? '1 小时前' : '3 小时前'}</span></span>
-        </button>`).join('')}
+      ${mGroup('流萤漫剧', ['给会话列表加归档', '修复拖拽排序抖动', '把设置页拆成两级'].map((t, i) => `<button class="m-row" style="${i === 0 ? 'background:var(--fill-2)' : ''}"><span class="m-row-main"><span class="m-row-title">${t}</span><span class="m-row-sub">流萤漫剧 · ${i === 0 ? '2 分钟前' : i === 1 ? '1 小时前' : '3 小时前'}</span></span></button>`).join(''))}
     </div>
-    <div class="m-scrim"></div>
-    <div class="m-sheet">
-      <div class="m-grabber"></div>
-      <div class="m-sheet-title">给会话列表加归档</div>
-      <button class="pop-item" style="height:46px;padding:0 18px">${$('edit')}<span class="grow">重命名</span></button>
-      <button class="pop-item" style="height:46px;padding:0 18px">${$('copy')}<span class="grow">复制会话 ID</span></button>
-      <button class="pop-item" style="height:46px;padding:0 18px">${$('layers')}<span class="grow">复制到新会话</span></button>
-      <div class="pop-sep"></div>
-      <button class="pop-item" style="height:46px;padding:0 18px">${$('folder')}<span class="grow">归档</span></button>
-      <button class="pop-item" style="height:46px;padding:0 18px;color:var(--bad)">${$('trash')}<span class="grow">删除</span></button>
-    </div>
+    ${mSheet({ title: '给会话列表加归档', items: [['edit', '重命名', ''], ['copy', '复制会话 ID', ''], ['layers', '复制到新会话', '']] })}
   </div>`;
+
+const mPalette = () => mShell({
+  title: '给会话列表加归档',
+  body: `<div class="m-pad"><div class="turn-user"><div class="bubble-user" style="background:var(--fill);border-radius:16px">把测试也跑一遍</div></div></div>`,
+  footer: mComposer({}),
+  overlay: `
+    <div class="m-scrim"></div>
+    <div style="position:absolute;left:10px;right:10px;top:96px;background:var(--panel);border-radius:var(--r-lg);box-shadow:var(--shadow-pop);overflow:hidden">
+      <div class="row gap-10 p-14" style="border-bottom:1px solid var(--line-2)">${$('search')}<span class="t-15">切换模型</span><span class="caret"></span></div>
+      <div style="padding:6px">
+        ${[['切换到 DeepSeek-V4.1', '当前', true], ['打开设置 · 模型', '', false], ['新建会话', '', false], ['压缩上下文', '/compact', false]]
+          .map(([t, meta, cur]) => `<button class="pop-item" style="height:44px">${cur ? $('check') : '<span style="width:16px"></span>'}<span class="grow">${t}</span><span class="meta">${meta}</span></button>`).join('')}
+      </div>
+    </div>`,
+});
 
 /* ------------------------------------------------------------------ router */
 
@@ -1370,14 +1623,36 @@ const PAGES = [
   { group: '设置', id: 'set-shortcuts', zh: '快捷键', en: 'shortcuts', render: setShortcuts },
   { group: '设置', id: 'set-account', zh: '账户', en: 'account', render: setAccount },
 
-  { group: '手机', id: 'm-sessions', zh: '会话列表', en: 'mobile', render: mSessions },
-  { group: '手机', id: 'm-conv', zh: '会话', en: 'mobile', render: mConv },
-  { group: '手机', id: 'm-approval', zh: '审批', en: 'mobile', render: mApproval },
-  { group: '手机', id: 'm-diff', zh: '变更', en: 'mobile', render: mDiff },
-  { group: '手机', id: 'm-new', zh: '新任务', en: 'mobile', render: mNew },
-  { group: '手机', id: 'm-settings', zh: '设置', en: 'mobile', render: mSettings },
-  { group: '手机', id: 'm-drawer', zh: '抽屉导航', en: 'mobile', render: mDrawer },
-  { group: '手机', id: 'm-actions', zh: '会话操作卡', en: 'mobile', render: mActions },
+  { group: '手机 · 会话', id: 'm-sessions', zh: '会话列表', en: 'home', render: mSessions },
+  { group: '手机 · 会话', id: 'm-empty', zh: '新会话空态', en: 'empty', render: mEmpty },
+  { group: '手机 · 会话', id: 'm-conv', zh: '会话', en: 'chat', render: mConv },
+  { group: '手机 · 会话', id: 'm-conv-plus', zh: '加号菜单', en: 'plus', render: mConvPlus },
+  { group: '手机 · 会话', id: 'm-conv-at', zh: '引用菜单', en: '@', render: mConvAt },
+  { group: '手机 · 会话', id: 'm-conv-slash', zh: '命令菜单', en: '/', render: mConvSlash },
+  { group: '手机 · 会话', id: 'm-approval', zh: '审批', en: 'approval', render: mApproval },
+  { group: '手机 · 会话', id: 'm-ask', zh: '提问', en: 'question', render: mAsk },
+  { group: '手机 · 会话', id: 'm-plan', zh: '计划', en: 'plan', render: mPlan },
+  { group: '手机 · 会话', id: 'm-run', zh: '运行轨迹', en: 'trajectory', render: mRun },
+  { group: '手机 · 会话', id: 'm-agents', zh: '子代理', en: 'agents', render: mAgents },
+  { group: '手机 · 会话', id: 'm-search', zh: '搜索', en: 'search', render: mSearch },
+
+  { group: '手机 · 工作区', id: 'm-diff', zh: '变更', en: 'diff', render: mDiff },
+  { group: '手机 · 工作区', id: 'm-files', zh: '文件', en: 'files', render: mFiles },
+  { group: '手机 · 工作区', id: 'm-code', zh: '代码', en: 'code', render: mCode },
+  { group: '手机 · 工作区', id: 'm-terminal', zh: '终端', en: 'terminal', render: mTerminal },
+  { group: '手机 · 工作区', id: 'm-browser', zh: '浏览器', en: 'browser', render: mBrowser },
+
+  { group: '手机 · 管理', id: 'm-jobs', zh: '后台任务', en: 'jobs', render: mJobs },
+  { group: '手机 · 管理', id: 'm-automation', zh: '自动化', en: 'automation', render: mAutomation },
+  { group: '手机 · 管理', id: 'm-plugins', zh: '插件', en: 'plugins', render: mPlugins },
+  { group: '手机 · 管理', id: 'm-new', zh: '新任务', en: 'new task', render: mNew },
+
+  { group: '手机 · 设置', id: 'm-settings', zh: '设置', en: 'settings', render: mSettings },
+  { group: '手机 · 设置', id: 'm-settings-detail', zh: '设置详情', en: 'detail', render: mSettingsDetail },
+
+  { group: '手机 · 浮层', id: 'm-drawer', zh: '抽屉导航', en: 'drawer', render: mDrawer },
+  { group: '手机 · 浮层', id: 'm-actions', zh: '会话操作卡', en: 'sheet', render: mActions },
+  { group: '手机 · 浮层', id: 'm-palette', zh: '命令面板', en: 'cmd-k', render: mPalette },
 ];
 
 const byId = new Map(PAGES.map((p) => [p.id, p]));
@@ -1430,4 +1705,10 @@ document.addEventListener('click', (event) => {
 });
 
 document.querySelector('#index').innerHTML = indexList();
+const sub = document.querySelector('#index-sub');
+if (sub) {
+  const pc = PAGES.filter((p) => !p.id.startsWith('m-')).length;
+  const mobile = PAGES.length - pc;
+  sub.textContent = `${PAGES.length} 个页面 · PC ${pc} · 手机 ${mobile} · 浅色/深色`;
+}
 route();
