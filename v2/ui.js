@@ -277,7 +277,7 @@ const rail = (tab = '变更') => `
   </aside>`;
 
 const popPlus = () => `
-  <div class="pop" style="position:absolute;left:0;bottom:112px;z-index:5">
+  <div class="pop" style="position:absolute;left:0;bottom:150px;z-index:5">
     <div class="pop-label">添加</div>
     <button class="pop-item">${$('file')}<span class="grow">文件与文件夹</span><span class="meta">@</span></button>
     <button class="pop-item">${$('sparkle')}<span class="grow">技能</span></button>
@@ -288,7 +288,7 @@ const popPlus = () => `
   </div>`;
 
 const popAt = () => `
-  <div class="pop pop-lg" style="position:absolute;left:0;bottom:112px;z-index:5">
+  <div class="pop pop-lg" style="position:absolute;left:0;bottom:150px;z-index:5">
     <div class="pop-label">引用文件 · 流萤漫剧</div>
     <button class="pop-item" style="background:var(--fill)">${$('file')}<span class="grow">src/session/archive.ts</span><span class="meta">刚编辑</span></button>
     <button class="pop-item">${$('file')}<span class="grow">src/session/store.ts</span></button>
@@ -299,7 +299,7 @@ const popAt = () => `
   </div>`;
 
 const popSlash = () => `
-  <div class="pop pop-lg" style="position:absolute;left:0;bottom:112px;z-index:5">
+  <div class="pop pop-lg" style="position:absolute;left:0;bottom:150px;z-index:5">
     <div class="pop-label">命令</div>
     <button class="pop-item">${$('target')}<span class="grow">/plan</span><span class="meta">进入计划模式</span></button>
     <button class="pop-item">${$('layers')}<span class="grow">/compact</span><span class="meta">压缩上下文</span></button>
@@ -1650,6 +1650,21 @@ const PAGES = [
   { group: '手机 · 设置', id: 'm-settings', zh: '设置', en: 'settings', render: mSettings },
   { group: '手机 · 设置', id: 'm-settings-detail', zh: '设置详情', en: 'detail', render: mSettingsDetail },
 
+  { group: '扩展', id: 'deliverables', zh: '交付物', en: 'deliverables', render: () => deliverablesPage() },
+  { group: '扩展', id: 'plugin-detail', zh: '插件详情', en: 'plugin', render: () => pluginDetailPage() },
+  { group: '扩展', id: 'doc-preview', zh: '文档预览', en: 'document', render: () => docPreviewPage() },
+  { group: '扩展', id: 'unpreviewable', zh: '无法预览', en: 'fallback', render: () => unpreviewablePage() },
+  { group: '扩展', id: 'reasoning', zh: '思考节点', en: 'reasoning', render: () => reasoningPage() },
+  { group: '扩展', id: 'context', zh: '上下文', en: 'context', render: () => contextPage() },
+  { group: '扩展', id: 'voice', zh: '语音输入', en: 'voice', render: () => voicePage() },
+  { group: '扩展', id: 'suihuo', zh: '燧火工作台', en: 'suihuo', render: () => suihuoPage() },
+  { group: '扩展', id: 'inspector', zh: '检查器', en: 'inspector', render: () => inspectorPage() },
+  { group: '扩展', id: 'team', zh: '代理团队', en: 'team', render: () => teamPage() },
+  { group: '扩展', id: 'skills', zh: '技能', en: 'skills', render: () => skillsPage() },
+  { group: '扩展', id: 'workflow', zh: '工作流', en: 'workflow', render: () => workflowPage() },
+  { group: '扩展', id: 'picker', zh: '引用选择器', en: 'picker', render: () => pickerPage() },
+  { group: '扩展', id: 'states', zh: '共享状态', en: 'states', render: () => statesPage() },
+
   { group: '手机 · 浮层', id: 'm-drawer', zh: '抽屉导航', en: 'drawer', render: mDrawer },
   { group: '手机 · 浮层', id: 'm-actions', zh: '会话操作卡', en: 'sheet', render: mActions },
   { group: '手机 · 浮层', id: 'm-palette', zh: '命令面板', en: 'cmd-k', render: mPalette },
@@ -1657,58 +1672,381 @@ const PAGES = [
 
 const byId = new Map(PAGES.map((p) => [p.id, p]));
 
+/* --- surfaces the slot contract declares that the first cut missed ---------
+ * Enumerated from docs/slots-contract.json, not from memory: deliverables,
+ * plugin detail, document preview and its unpreviewable fallback, reasoning
+ * nodes, the context dashboard, voice, the Suihuo workbench, the session
+ * inspector, the agent team, skills, workflow runs, the reference picker and the
+ * four shared states. Same chrome as the rest, so they cannot look foreign.
+ */
+
+const deliverablesPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '交付物' })}
+    <div class="content"><div class="pane">
+      <div class="pane-head"><span class="pane-title">3 个交付物</span><div class="grow"></div><button class="btn btn-sm">全部下载</button></div>
+      <div class="pane-body">
+        <table class="table">
+          <thead><tr><th>文件</th><th>类型</th><th>大小</th><th>评审</th><th></th></tr></thead>
+          <tbody>
+            ${[
+              ['会话归档说明.md', 'Markdown', '12 KB', '已通过', 'ok'],
+              ['archive-diff.patch', 'Patch', '38 KB', '待评审', 'warn'],
+              ['测试报告.html', 'HTML', '220 KB', '已通过', 'ok'],
+            ].map(([n, t, sz, st, k]) => `<tr><td><b class="w-550">${n}</b></td><td class="sec">${t}</td><td class="muted mono t-12">${sz}</td><td><span class="chip chip-${k}">${st}</span></td><td style="text-align:right"><button class="btn btn-sm">预览</button></td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div></div>`,
+  rail: rail('变更'),
+});
+
+const pluginDetailPage = () => pcShell({
+  side: sideBar({ active: 'plugins' }),
+  main: `${topBar({ title: '燧火漫助' })}
+    <div class="content"><div class="form">
+      <div class="row gap-12 mb-16">
+        <span class="brand-mark" style="width:40px;height:40px;border-radius:12px">燧</span>
+        <div class="col" style="gap:2px"><h2 style="margin:0">燧火漫助</h2><span class="t-12 muted">漫剧制作工作台 · 0.2.0 · 本地目录</span></div>
+        <div class="grow"></div><div class="switch" role="switch" aria-checked="true"></div>
+      </div>
+      <div class="card card-pad mb-12">
+        <div class="row gap-8 mb-8"><b class="t-13">安装与激活</b><span class="chip chip-ok">已激活</span></div>
+        <div class="kv"><span class="k">来源</span><span class="v">本地目录</span></div>
+        <div class="kv"><span class="k">需要重启</span><span class="v">否（客户端热应用）</span></div>
+        <div class="kv"><span class="k">Host 行</span><span class="v">suihuo-mj</span></div>
+      </div>
+      <div class="card card-pad mb-12">
+        <div class="row gap-8 mb-8"><b class="t-13">配置</b><div class="grow"></div><button class="btn btn-sm">打开配置</button></div>
+        <div class="row gap-16" style="padding:8px 0"><span class="t-13" style="width:140px">审查输出上限</span><button class="select"><span class="grow">20000 tokens</span>${$('chevronDown')}</button></div>
+      </div>
+      <div class="card card-pad">
+        <div class="row gap-8"><b class="t-13">危险操作</b><div class="grow"></div><button class="btn btn-danger btn-sm">移除插件</button></div>
+        <div class="t-12 muted mt-8">移除只卸载注册与行，不删除项目文件与会话历史。</div>
+      </div>
+    </div></div>`,
+});
+
+const docPreviewPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '文档预览' })}
+    <div class="content"><div class="pane" style="flex-direction:row">
+      <div class="file-tree">
+        <div class="ft-row"><span class="dir">${$('chevronDown')}</span><span>docs</span></div>
+        <div style="margin-left:12px">
+          <button class="ft-row" aria-current="true">${$('file')}<span>implementation-status.md</span></button>
+          <button class="ft-row">${$('file')}<span>deployment.md</span></button>
+          <button class="ft-row">${$('file')}<span>report.pdf</span></button>
+          <button class="ft-row">${$('file')}<span>board.xlsx</span></button>
+        </div>
+      </div>
+      <div class="col grow" style="min-width:0">
+        <div class="pane-head"><span class="pane-title mono t-12">docs/implementation-status.md</span><div class="grow"></div><span class="chip">只读</span></div>
+        <div class="pane-body p-24"><div class="prose" style="max-width:680px">
+          <h1 class="serif" style="font-size:22px;margin:0 0 6px">实施状态</h1>
+          <p class="muted t-12 mono">已核对 · 2026-10-22</p>
+          <table class="table mt-16"><thead><tr><th>项</th><th>PC</th><th>手机</th></tr></thead><tbody>
+            <tr><td>框架接管</td><td><span class="chip chip-ok">已验</span></td><td><span class="chip chip-ok">已验</span></td></tr>
+            <tr><td>真机安全区</td><td>—</td><td><span class="chip chip-warn">未验</span></td></tr>
+          </tbody></table>
+        </div></div>
+      </div>
+    </div></div>`,
+});
+
+const unpreviewablePage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '文档预览' })}
+    <div class="content"><div class="pane">
+      <div class="pane-head"><span class="pane-title mono t-12">docs/board.xlsx</span><div class="grow"></div><button class="btn btn-sm">用系统应用打开</button></div>
+      <div class="pane-body"><div class="empty">
+        <h3>这个文件无法内嵌预览</h3>
+        <p>表格类文件需要转换服务；转换不可用时给出原因与替代入口，而不是空白页。</p>
+        <div class="row gap-8"><button class="btn">下载原件</button><button class="btn btn-ghost">查看转换说明</button></div>
+      </div></div>
+    </div></div>`,
+});
+
+const reasoningPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar()}
+    <div class="content"><div class="thread"><div class="thread-inner">
+      ${userTurn('会话列表没法归档，删了就找不回来了。')}
+      ${aiTurn(`<div class="card card-pad mb-12" style="background:var(--panel-2)"><div class="row gap-8"><span class="chip">思考</span><span class="t-12 muted">6 秒 · 已折叠</span><div class="grow"></div><span class="t-12 muted">展开</span></div></div>
+        <div class="prose"><p>先把删除改成软归档，再看列表与搜索的过滤条件。</p></div>
+        ${toolCard('read', 'src/session/store.ts', '<div class="ln">126 export async function remove(id: string) {</div><div class="ln">127   await db.sessions.delete(id)</div><div class="ln">128 }</div>')}`)}
+    </div></div></div>${composer({})}`,
+});
+
+const contextPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '上下文' })}
+    <div class="content"><div class="form">
+      <h2>上下文用量</h2><p class="lead">62k / 200k · 压缩 0 次 · 最近一次压缩 3 轮前</p>
+      ${[['系统提示', 8], ['工具定义', 14], ['会话历史', 31], ['文件引用', 9], ['剩余', 38]].map(([n, pct]) => `<div class="row gap-12" style="padding:10px 0;border-bottom:1px solid var(--line-2)"><span style="width:96px" class="t-13">${n}</span><div class="bar grow"><i style="width:${pct}%"></i></div><span class="mono t-12 muted" style="width:48px;text-align:right">${pct}%</span></div>`).join('')}
+      <div class="form-actions"><button class="btn">立即压缩</button><button class="btn btn-primary">查看明细</button></div>
+    </div></div>`,
+});
+
+const voicePage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '语音输入' })}
+    <div class="content"><div class="form">
+      <h2>说出来，也留得住</h2><p class="lead">本地识别，不上传音频；声纹只用于过滤，不作为审批依据。</p>
+      <div class="field"><div class="field-label"><b>识别提供商</b><span>本地模型，首次使用需准备</span></div><div class="field-control"><button class="select"><span class="grow">SenseVoice · 本地</span>${$('chevronDown')}</button><span class="chip chip-ok">已就绪</span></div></div>
+      <div class="field"><div class="field-label"><b>持续听写</b><span>说「发送」提交，「取消」结束</span></div><div class="field-control"><div class="switch" role="switch" aria-checked="true"></div></div></div>
+      <div class="field"><div class="field-label"><b>声纹阈值</b><span>越高越严格</span></div><div class="field-control"><div class="row gap-8"><div class="bar" style="width:220px"><i style="width:55%"></i></div><span class="mono t-12">0.55</span></div></div></div>
+      <div class="card card-pad mt-16"><div class="row gap-8 mb-8"><span class="chip chip-info">聆听中</span><span class="t-12 muted">已累积 2 句 · 可随时取消</span></div><span class="t-13">“把测试也跑一遍” 已插入草稿</span></div>
+    </div></div>`,
+});
+
+const suihuoPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '燧火漫助' })}
+    <div class="content"><div class="pane">
+      <div class="pane-head"><span class="pane-title">工作台</span><span class="chip chip-ok">项目已核验</span><div class="grow"></div><button class="btn btn-sm">重启工作台</button></div>
+      <div class="pane-body" style="background:var(--panel-2)"><div class="p-16">
+        <div class="card" style="overflow:hidden">
+          <div class="row gap-10 p-14" style="border-bottom:1px solid var(--line-2)"><span class="brand-mark">燧</span><b class="t-13">燧火工作台 · 片段</b><div class="grow"></div><span class="chip">内嵌</span></div>
+          <div class="row gap-12 p-16">
+            ${[['第1季-EP01', '片段 6 · 已定素材 12'], ['第1季-EP02', '片段 4 · 待生成 2']].map(([t, d]) => `<div class="card card-pad" style="flex:1"><div class="row gap-8"><b class="t-13">${t}</b><div class="grow"></div><span class="chip chip-ok">就绪</span></div><div class="t-12 muted mt-4">${d}</div></div>`).join('')}
+          </div>
+          <div class="p-14" style="border-top:1px solid var(--line-2);background:var(--panel-2)"><div class="row gap-8"><span class="chip chip-warn">生成前需反问</span><span class="t-12 muted">未通过门禁不会产生付费任务</span><div class="grow"></div><button class="btn btn-sm">查看门禁</button></div></div>
+        </div>
+      </div></div>
+    </div></div>`,
+});
+
+const inspectorPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '会话检查器' })}
+    <div class="content"><div class="pane">
+      <div class="pane-head"><span class="pane-title">最近一次请求</span><div class="grow"></div><div class="seg"><button aria-pressed="true">请求</button><button>事件</button><button>工具</button></div></div>
+      <div class="pane-body p-16">
+        ${toolCard('file', 'request', '<div class="ln">provider   deepseek</div><div class="ln">model      deepseek-v4.1</div><div class="ln">messages   14 <span class="dim">(正文已隐藏)</span></div><div class="ln">tokens     62,104 in / 4,201 out</div>')}
+        ${toolCard('terminal', 'tool/call', '<div class="ln">grep { pattern: "sessions.delete", path: "src" }</div><div class="ln dim">→ 2 matches in 18ms</div>')}
+        <div class="card card-pad mt-12" style="background:var(--panel-2)"><div class="t-12 sec">凭据、附件正文与用户输入原文不在此视图回显。</div></div>
+      </div>
+    </div></div>`,
+});
+
+const teamPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '代理团队' })}
+    <div class="content"><div class="pane">
+      <div class="pane-head"><span class="pane-title">3 个成员</span><div class="grow"></div><button class="btn btn-sm btn-primary">分派任务</button></div>
+      <div class="pane-body p-16">
+        ${[['Lead', '协调与集成', '运行中', 'warn'], ['界面', '导航与视图适配', '空闲', ''], ['验证', '手机与 PC 验收', '空闲', '']].map(([n, d, s, k]) => `<div class="card card-pad mb-12"><div class="row gap-10"><span class="who-mark">${n[0]}</span><div class="col" style="gap:2px;flex:1"><b class="t-13">${n}</b><span class="t-12 muted">${d}</span></div><span class="chip ${k ? 'chip-' + k : ''}">${s}</span><button class="btn btn-sm">打开会话</button></div></div>`).join('')}
+        <div class="card card-pad"><b class="t-13">共享任务板</b>
+          <table class="table mt-8"><thead><tr><th>任务</th><th>负责人</th><th>状态</th></tr></thead><tbody>
+            <tr><td>导航视图</td><td>界面</td><td><span class="chip chip-warn">进行中</span></td></tr>
+            <tr><td>手机验收</td><td>未领取</td><td><span class="chip">待开始</span></td></tr>
+          </tbody></table></div>
+      </div>
+    </div></div>`,
+});
+
+const skillsPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '技能' })}
+    <div class="content"><div class="form">
+      <h2>技能</h2><p class="lead">技能会作为指令与脚本注入会话，不改变权限。</p>
+      ${[['代码审查', '按仓库约定检查差异', true], ['文档写作', '结构化长文与表格', true], ['燧火提示词', '漫剧提示词规范与门禁', false]].map(([n, d, on]) => `<div class="card card-pad mb-12"><div class="row gap-12"><span class="avatar" style="border-radius:10px">${$('sparkle')}</span><div class="col" style="gap:2px;flex:1"><b class="t-13">${n}</b><span class="t-12 muted">${d}</span></div><div class="switch" role="switch" aria-checked="${on}"></div></div></div>`).join('')}
+    </div></div>`,
+});
+
+const workflowPage = () => pcShell({
+  side: sideBar(),
+  main: `${topBar({ title: '工作流运行' })}
+    <div class="content"><div class="pane">
+      <div class="pane-head"><span class="chip chip-warn">运行中</span><span class="pane-title">审查全部界面</span><div class="grow"></div><button class="btn btn-sm">终止</button></div>
+      <div class="pane-body p-16">
+        ${[['收集页面', 'ok'], ['逐页截图', 'ok'], ['视觉审阅', 'warn'], ['汇总报告', '']].map(([n, st], i) => `<div class="row gap-12" style="padding:12px 0;border-bottom:1px solid var(--line-2)"><span class="chip">${i + 1}</span><b class="t-13 grow">${n}</b><span class="chip ${st === 'ok' ? 'chip-ok' : st === 'warn' ? 'chip-warn' : ''}">${st === 'ok' ? '完成' : st === 'warn' ? '进行中' : '等待'}</span></div>`).join('')}
+      </div>
+    </div></div>`,
+});
+
+const pickerPage = () => `
+  <div class="device device-pc" style="position:relative">
+    ${sideBar()}
+    <div class="main" style="flex:1;min-width:0">${topBar()}
+      <div class="content"><div class="thread"><div class="thread-inner">${userTurn('引用一下那个文件')}</div></div></div>${composer({})}
+    </div>
+    <div style="position:absolute;inset:0;background:rgba(28,26,23,.16)"></div>
+    <div style="position:absolute;left:50%;top:150px;transform:translateX(-50%);width:560px;background:var(--panel);border-radius:var(--r-lg);box-shadow:var(--shadow-pop);overflow:hidden">
+      <div class="row gap-10 p-16" style="border-bottom:1px solid var(--line-2)">${$('file')}<span class="t-15">选择文件或目录</span><div class="grow"></div><span class="chip">@ 引用</span></div>
+      <div class="p-14" style="max-height:280px;overflow:auto">
+        <div class="pop-label">流萤漫剧 / src</div>
+        ${[['session/archive.ts', '1.2 KB'], ['session/store.ts', '3.4 KB'], ['api/session.ts', '900 B']].map(([n, sz]) => `<button class="pop-item"><span class="grow mono t-12">${n}</span><span class="meta">${sz}</span></button>`).join('')}
+        <div class="pop-sep"></div>
+        <button class="pop-item">${$('folder')}<span class="grow">选择其他目录…</span></button>
+      </div>
+    </div>
+  </div>`;
+
+const statesPage = () => `
+  <div class="device device-pc">
+    ${sideBar()}
+    <div class="main" style="flex:1;min-width:0">
+      ${topBar({ title: '共享状态' })}
+      <div class="content" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-2)">
+        ${[['空状态', '还没有会话', '从一句话开始；这里是空态，不是加载中。'], ['加载中', '正在读取项目', '骨架占位，保持布局稳定。'], ['错误', '读取失败', '给出原因与重试入口，保留已有内容。'], ['只读', '当前为只读', '输入与破坏性操作禁用，但可复制与查看。']].map(([tag, title, body], i) => `
+          <div style="background:var(--panel);padding:22px;display:flex;flex-direction:column;gap:8px">
+            <span class="chip">${tag}</span><b class="t-15">${title}</b><span class="t-12 sec">${body}</span>
+            ${i === 1 ? '<div class="bar mt-8"><i style="width:40%"></i></div><div class="bar"><i style="width:70%"></i></div>' : ''}
+            ${i !== 1 ? `<button class="btn btn-sm mt-8" style="align-self:flex-start" ${i === 3 ? 'disabled' : ''}>${i === 0 ? '新建会话' : i === 2 ? '重试' : '了解权限'}</button>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+/* --- catalog + router ----------------------------------------------------
+ * One renderer, one place that knows about page order, filtering, zoom and
+ * keyboard. The previous version rebuilt everything on each navigation and had
+ * no way to reach a page except scrolling a long list.
+ */
+
+let filter = 'all';
+let query = '';
+let zoom = 'fit';
+
+const matches = (page) => {
+  if (filter === 'mobile' && !page.id.startsWith('m-')) return false;
+  if (filter === 'pc' && page.id.startsWith('m-')) return false;
+  if (!query) return true;
+  const hay = `${page.zh} ${page.en} ${page.group} ${page.id}`.toLowerCase();
+  return hay.includes(query.toLowerCase());
+};
+
 const indexList = () => {
   const groups = [...new Set(PAGES.map((p) => p.group))];
-  return groups.map((g) => `
-    <div class="index-group">
-      <div class="index-group-label">${g}</div>
-      ${PAGES.filter((p) => p.group === g).map((p) => `
-        <button class="index-item" data-page="${p.id}">
-          <span>${p.zh}</span><span class="en">${p.en}</span>
-        </button>`).join('')}
-    </div>`).join('');
+  const html = groups.map((g) => {
+    const rows = PAGES.filter((p) => p.group === g && matches(p));
+    if (rows.length === 0) return '';
+    return `
+      <div class="index-group">
+        <div class="index-group-label">${g}<span>${rows.length}</span></div>
+        ${rows.map((p) => `
+          <button class="index-item" data-page="${p.id}">
+            <span>${p.zh}</span><span class="en">${p.en}</span>
+          </button>`).join('')}
+      </div>`;
+  }).join('');
+  return html || '<div class="index-empty">没有匹配的页面</div>';
 };
+
+const visiblePages = () => PAGES.filter(matches);
 
 const fitStage = () => {
   const stage = document.querySelector('.stage');
   const device = stage?.querySelector('.device');
   if (!stage || !device) return;
   const pad = 52;
-  const scale = Math.min(1, (stage.clientWidth - pad) / device.offsetWidth, (stage.clientHeight - pad) / device.offsetHeight);
+  const fitScale = Math.min(1, (stage.clientWidth - pad) / device.offsetWidth, (stage.clientHeight - pad) / device.offsetHeight);
+  const scale = zoom === 'fit' ? fitScale : Math.min(Number(zoom), fitScale);
   device.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+  const label = document.querySelector('#page-note');
+  if (label) label.dataset.scale = `${Math.round(scale * 100)}%`;
 };
 
-const route = () => {
+const paintIndex = () => {
+  document.querySelector('#index').innerHTML = indexList();
+  const current = location.hash.replace(/^#\/?/, '').split('?')[0];
+  document.querySelectorAll('.index-item').forEach((el) => {
+    el.setAttribute('aria-current', String(el.dataset.page === current));
+  });
+};
+
+const go = (id) => { if (location.hash === `#/${id}`) render(); else location.hash = `#/${id}`; };
+
+const step = (delta) => {
+  const list = visiblePages();
+  if (list.length === 0) return;
+  const currentId = (location.hash.replace(/^#\/?/, '') || 'conv').split('?')[0];
+  const at = list.findIndex((p) => p.id === currentId);
+  const next = list[(at + delta + list.length) % list.length] ?? list[0];
+  go(next.id);
+};
+
+function render() {
   const id = (location.hash.replace(/^#\/?/, '') || 'conv').split('?')[0];
   const page = byId.get(id) ?? byId.get('conv');
-  document.querySelectorAll('.index-item').forEach((el) => {
-    el.setAttribute('aria-current', String(el.dataset.page === page.id));
-  });
-  const host = document.querySelector('#stage');
-  host.innerHTML = page.render();
+  const list = visiblePages();
+  const at = Math.max(0, list.findIndex((p) => p.id === page.id));
+
+  document.querySelector('#stage').innerHTML = page.render();
   document.querySelector('#page-title').textContent = page.zh;
   document.querySelector('#page-note').textContent = `${page.group} · ${page.en}`;
+  const counter = document.querySelector('#page-count');
+  if (counter) counter.textContent = `${at + 1} / ${list.length || PAGES.length}`;
+  const sub = document.querySelector('#index-sub');
+  if (sub) {
+    const pc = PAGES.filter((p) => !p.id.startsWith('m-')).length;
+    sub.textContent = `${PAGES.length} 个页面 · PC ${pc} · 手机 ${PAGES.length - pc}`;
+  }
+  paintIndex();
   fitStage();
-};
+}
 
-window.addEventListener('hashchange', route);
+/* --- wiring -------------------------------------------------------------- */
+
+window.addEventListener('hashchange', render);
 window.addEventListener('resize', fitStage);
+
 document.addEventListener('click', (event) => {
   const item = event.target.closest('.index-item');
-  if (item) location.hash = `#/${item.dataset.page}`;
+  if (item) { go(item.dataset.page); return; }
+
+  const filterBtn = event.target.closest('.index-filter');
+  if (filterBtn) {
+    filter = filterBtn.dataset.filter;
+    document.querySelectorAll('.index-filter').forEach((el) => el.setAttribute('aria-pressed', String(el.dataset.filter === filter)));
+    paintIndex();
+    render();
+    return;
+  }
+
+  const deviceBtn = event.target.closest('[data-device]');
+  if (deviceBtn) {
+    zoom = deviceBtn.dataset.device;
+    document.querySelectorAll('[data-device]').forEach((el) => el.setAttribute('aria-pressed', String(el.dataset.device === zoom)));
+    fitStage();
+    return;
+  }
+
+  if (event.target.closest('#prev-page')) { step(-1); return; }
+  if (event.target.closest('#next-page')) { step(1); return; }
+
   const themeBtn = event.target.closest('[data-theme-toggle]');
   if (themeBtn) {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
     themeBtn.textContent = next === 'dark' ? '浅色' : '深色';
+    themeBtn.setAttribute('aria-pressed', String(next === 'dark'));
   }
 });
 
-document.querySelector('#index').innerHTML = indexList();
-const sub = document.querySelector('#index-sub');
-if (sub) {
-  const pc = PAGES.filter((p) => !p.id.startsWith('m-')).length;
-  const mobile = PAGES.length - pc;
-  sub.textContent = `${PAGES.length} 个页面 · PC ${pc} · 手机 ${mobile} · 浅色/深色`;
-}
-route();
+document.addEventListener('input', (event) => {
+  if (event.target.id !== 'page-search') return;
+  query = event.target.value.trim();
+  paintIndex();
+});
+
+document.addEventListener('keydown', (event) => {
+  const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    document.querySelector('#page-search')?.focus();
+    document.querySelector('#page-search')?.select();
+    return;
+  }
+  if (typing) {
+    if (event.key === 'Escape') document.activeElement.blur();
+    return;
+  }
+  if (event.key === 'ArrowRight') { step(1); return; }
+  if (event.key === 'ArrowLeft') { step(-1); return; }
+  if (event.key === 'Escape') { query = ''; const box = document.querySelector('#page-search'); if (box) box.value = ''; paintIndex(); }
+});
+
+render();

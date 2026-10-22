@@ -13,18 +13,41 @@
     <div class="index-head">
       <div class="index-title">DSH UI · 页面总览</div>
       <div class="index-sub" id="index-sub">PC 与手机 · 浅色/深色</div>
+      <div class="index-search">
+        <svg class="icon icon-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14ZM20 20l-4.2-4.2"/></svg>
+        <input id="page-search" type="search" placeholder="搜索页面 · 按名称或分组" aria-label="搜索页面">
+      </div>
+      <div class="index-filters">
+        <button class="index-filter" data-filter="all" aria-pressed="true">全部</button>
+        <button class="index-filter" data-filter="pc" aria-pressed="false">PC</button>
+        <button class="index-filter" data-filter="mobile" aria-pressed="false">手机</button>
+      </div>
     </div>
     <div class="index-list" id="index"></div>
+    <div class="index-foot">
+      <a href="./legacy.html">旧版 63 场景预览</a>
+    </div>
   </aside>
 
   <div class="stage-wrap">
     <div class="toolbar">
+      <button class="tool-btn" id="prev-page" aria-label="上一页" title="上一页（←）">←</button>
+      <span class="toolbar-count" id="page-count">1 / 55</span>
+      <button class="tool-btn" id="next-page" aria-label="下一页" title="下一页（→）">→</button>
+      <div class="toolbar-divider"></div>
       <span class="toolbar-title" id="page-title">会话</span>
       <span class="toolbar-note" id="page-note">会话 · chat</span>
       <div class="toolbar-spacer"></div>
-      <span class="toolbar-note">参照 Claude / Codex 的真实图形界面语汇</span>
-      <div class="seg" style="margin-left:12px">
-        <button data-theme-toggle>深色</button>
+      <span class="toolbar-note hint">搜索 <kbd>⌘K</kbd> · 翻页 <kbd>←</kbd> <kbd>→</kbd></span>
+      <div class="toolbar-divider"></div>
+      <div class="seg" id="zoom-seg">
+        <button data-device="fit" aria-pressed="true">适应</button>
+        <button data-device="1" aria-pressed="false">100%</button>
+        <button data-device="0.75" aria-pressed="false">75%</button>
+        <button data-device="0.5" aria-pressed="false">50%</button>
+      </div>
+      <div class="seg">
+        <button data-theme-toggle aria-pressed="false">深色</button>
       </div>
     </div>
     <div class="stage" id="stage"></div>
